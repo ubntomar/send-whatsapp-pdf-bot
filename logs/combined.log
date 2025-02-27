@@ -26,3 +26,13 @@
 2025-02-27T20:16:50.152Z INFO: Mensaje enviado a +573162950915
 2025-02-27T20:16:50.898Z INFO: PDF enviado a +573162950915: /home/omar/file.pdf
 2025-02-27T20:30:00.587Z INFO: Estado del cliente: {"isReady":true,"reconnectAttempts":0}
+2025-02-27T20:58:27.676Z INFO: POST /api/send-with-path
+2025-02-27T20:58:27.928Z INFO: Mensaje enviado a +573147654655
+2025-02-27T20:58:29.832Z INFO: PDF enviado a +573147654655: /home/omar/file.pdf
+2025-02-27T21:00:00.202Z INFO: Estado del cliente: {"isReady":true,"reconnectAttempts":0}
+2025-02-27T21:30:00.750Z INFO: Estado del cliente: {"isReady":true,"reconnectAttempts":0}
+2025-02-27T21:48:49.725Z INFO: GET /
+2025-02-27T21:48:59.293Z INFO: GET /
+2025-02-27T21:48:59.603Z INFO: GET /favicon.ico
+2025-02-27T21:49:03.618Z INFO: GET /favicon.ico
+2025-02-27T22:00:00.245Z INFO: Estado del cliente: {"isReady":true,"reconnectAttempts":0}

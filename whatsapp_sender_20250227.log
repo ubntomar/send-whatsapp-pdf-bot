@@ -1,0 +1,13 @@
+2025-02-27 20:55:53,493 - INFO - Iniciando proceso de envío de PDFs por WhatsApp
+2025-02-27 20:55:53,496 - ERROR - Error al conectar a la base de datos: 2003 (HY000): Can't connect to MySQL server on 'localhost:3306' (111)
+2025-02-27 20:57:42,857 - INFO - Iniciando proceso de envío de PDFs por WhatsApp
+2025-02-27 20:57:43,501 - INFO - Conexión a la base de datos establecida correctamente
+2025-02-27 20:57:43,642 - INFO - Se encontraron 0 usuarios con WhatsApp habilitado
+2025-02-27 20:57:43,642 - INFO - Proceso finalizado. Envíos exitosos: 0, Envíos fallidos: 0
+2025-02-27 20:57:43,711 - INFO - Conexión a la base de datos cerrada
+2025-02-27 20:58:27,048 - INFO - Iniciando proceso de envío de PDFs por WhatsApp
+2025-02-27 20:58:27,519 - INFO - Conexión a la base de datos establecida correctamente
+2025-02-27 20:58:27,659 - INFO - Se encontraron 1 usuarios con WhatsApp habilitado
+2025-02-27 20:58:29,850 - INFO - PDF enviado correctamente a Omar Hernandez (ID: 1308) - +573147654655
+2025-02-27 20:58:29,851 - INFO - Proceso finalizado. Envíos exitosos: 1, Envíos fallidos: 0
+2025-02-27 20:58:29,932 - INFO - Conexión a la base de datos cerrada
