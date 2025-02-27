@@ -2,3 +2,20 @@
 2025-02-27T01:21:58.846Z INFO: Escanee el siguiente código QR:
 2025-02-27T01:23:27.219Z INFO: Cliente autenticado correctamente
 2025-02-27T01:23:32.075Z INFO: Cliente WhatsApp listo y conectado
+2025-02-27T19:43:45.843Z INFO: Servidor iniciado en el puerto 8050
+2025-02-27T19:43:58.356Z INFO: Escanee el siguiente código QR:
+2025-02-27T19:45:02.262Z INFO: Cliente autenticado correctamente
+2025-02-27T19:45:08.889Z INFO: Cliente WhatsApp listo y conectado
+2025-02-27T19:47:07.570Z INFO: POST /api/send
+2025-02-27T19:47:07.770Z INFO: Mensaje enviado a +573162950915
+2025-02-27T19:47:28.044Z INFO: POST /api/send
+2025-02-27T19:47:28.426Z INFO: Mensaje enviado a +573162950915
+2025-02-27T19:47:31.009Z INFO: PDF enviado a +573162950915: /home/omar/whatsapp314/send-whatsapp-pdf-bot/uploads/1740685648072-481447462-file.pdf
+2025-02-27T20:00:00.824Z INFO: Estado del cliente: {"isReady":true,"reconnectAttempts":0}
+2025-02-27T20:09:35.955Z INFO: POST /api/send
+2025-02-27T20:09:36.092Z INFO: Mensaje enviado a +573162950915
+2025-02-27T20:09:37.352Z INFO: PDF enviado a +573162950915: /home/omar/whatsapp314/send-whatsapp-pdf-bot/uploads/1740686975960-852778155-file.pdf
+2025-02-27T20:09:54.000Z INFO: Cerrando aplicación...
+2025-02-27T20:11:16.216Z INFO: Servidor iniciado en el puerto 8050
+2025-02-27T20:11:34.458Z INFO: Cliente autenticado correctamente
+2025-02-27T20:11:36.324Z INFO: Cliente WhatsApp listo y conectado
