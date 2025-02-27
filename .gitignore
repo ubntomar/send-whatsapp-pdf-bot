@@ -5,3 +5,8 @@ yarn-error.log
 
 # Environment variables
 .env
+
+.wwebjs_cache
+
+sessions/
+
