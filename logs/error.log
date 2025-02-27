@@ -1,0 +1,2 @@
+2025-02-27T20:16:17.877Z ERROR: Error al enviar mensaje: El número +573162950900 no está registrado en WhatsApp.
+2025-02-27T20:16:17.879Z ERROR: 500 - El número +573162950900 no está registrado en WhatsApp. - /api/send-with-path - POST - ::ffff:127.0.0.1

@@ -5,7 +5,7 @@ import sys
 
 # Configuración
 API_URL = "http://localhost:8050"
-PHONE = "+573162950900"  # Cambia esto a tu número
+PHONE = "+573162950915"  # Cambia esto a tu número
 MESSAGE = "Este es un mensaje de prueba desde Python"
 PDF_PATH = "/home/omar/file.pdf"  # Cambia esto a la ruta de tu PDF
 

@@ -19,3 +19,10 @@
 2025-02-27T20:11:16.216Z INFO: Servidor iniciado en el puerto 8050
 2025-02-27T20:11:34.458Z INFO: Cliente autenticado correctamente
 2025-02-27T20:11:36.324Z INFO: Cliente WhatsApp listo y conectado
+2025-02-27T20:16:17.807Z INFO: POST /api/send-with-path
+2025-02-27T20:16:17.877Z ERROR: Error al enviar mensaje: El número +573162950900 no está registrado en WhatsApp.
+2025-02-27T20:16:17.879Z ERROR: 500 - El número +573162950900 no está registrado en WhatsApp. - /api/send-with-path - POST - ::ffff:127.0.0.1
+2025-02-27T20:16:50.102Z INFO: POST /api/send-with-path
+2025-02-27T20:16:50.152Z INFO: Mensaje enviado a +573162950915
+2025-02-27T20:16:50.898Z INFO: PDF enviado a +573162950915: /home/omar/file.pdf
+2025-02-27T20:30:00.587Z INFO: Estado del cliente: {"isReady":true,"reconnectAttempts":0}
