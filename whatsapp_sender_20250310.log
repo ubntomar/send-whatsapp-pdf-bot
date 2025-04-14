@@ -1,0 +1,6 @@
+2025-03-10 20:21:08,869 - INFO - Iniciando proceso de envío de PDFs por WhatsApp
+2025-03-10 20:21:09,596 - INFO - Conexión a la base de datos establecida correctamente
+2025-03-10 20:21:09,758 - INFO - Se encontraron 1 usuarios con WhatsApp habilitado
+2025-03-10 20:21:15,493 - INFO - PDF enviado correctamente a Omar Hernandez (ID: 1308) - +573162950915
+2025-03-10 20:21:15,496 - INFO - Proceso finalizado. Envíos exitosos: 1, Envíos fallidos: 0
+2025-03-10 20:21:15,581 - INFO - Conexión a la base de datos cerrada

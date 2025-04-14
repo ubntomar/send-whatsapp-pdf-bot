@@ -1,2 +1,18 @@
 2025-02-27T20:16:17.877Z ERROR: Error al enviar mensaje: El número +573162950900 no está registrado en WhatsApp.
 2025-02-27T20:16:17.879Z ERROR: 500 - El número +573162950900 no está registrado en WhatsApp. - /api/send-with-path - POST - ::ffff:127.0.0.1
+2025-02-28T01:58:36.736Z ERROR: 500 - Solo se permiten archivos PDF - /api/send - POST - ::ffff:47.88.79.231
+2025-03-21T12:17:27.622Z ERROR: Cliente desconectado: LOGOUT
+2025-03-21T12:17:37.690Z ERROR: Rechazo de promesa no manejado: Protocol error (Runtime.callFunctionOn): Target closed.
+2025-04-14T13:46:00.446Z ERROR: 500 - El cliente de WhatsApp no está listo. Por favor, espere a que se complete la autenticación. - /api/send - POST - ::ffff:47.88.79.231
+2025-04-14T13:56:46.066Z ERROR: 500 - El cliente de WhatsApp no está listo. Por favor, espere a que se complete la autenticación. - /api/send - POST - ::ffff:47.88.79.231
+2025-04-14T14:03:15.063Z ERROR: 500 - El cliente de WhatsApp no está listo. Por favor, espere a que se complete la autenticación. - /api/send - POST - ::ffff:47.88.79.231
+2025-04-14T14:39:29.705Z ERROR: Error al inicializar el cliente: ProtocolError: Protocol error (Runtime.callFunctionOn): Target closed.
+2025-04-14T14:39:39.722Z ERROR: Error al inicializar el cliente: ProtocolError: Protocol error (Runtime.callFunctionOn): Target closed.
+2025-04-14T14:39:49.953Z ERROR: Error al inicializar el cliente: ProtocolError: Protocol error (Runtime.callFunctionOn): Target closed.
+2025-04-14T14:40:00.382Z ERROR: Error al inicializar el cliente: ProtocolError: Protocol error (Runtime.callFunctionOn): Target closed.
+2025-04-14T14:40:11.157Z ERROR: Error al inicializar el cliente: Error: Navigation failed because browser has disconnected!
+2025-04-14T14:40:22.547Z ERROR: Error al inicializar el cliente: Error: Navigation failed because browser has disconnected!
+2025-04-14T14:40:39.753Z ERROR: Error al inicializar el cliente: Error: Navigation failed because browser has disconnected!
+2025-04-14T14:40:39.770Z ERROR: Número máximo de intentos de reconexión alcanzado. Reinicie manualmente el servicio.
+2025-04-14T14:40:39.809Z ERROR: Error al inicializar el cliente: ProtocolError: Protocol error (Target.setAutoAttach): Target closed.
+2025-04-14T14:40:39.815Z ERROR: Número máximo de intentos de reconexión alcanzado. Reinicie manualmente el servicio.
