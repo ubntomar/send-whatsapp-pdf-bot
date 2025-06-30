@@ -16,3 +16,8 @@
 2025-04-14T14:40:39.770Z ERROR: Número máximo de intentos de reconexión alcanzado. Reinicie manualmente el servicio.
 2025-04-14T14:40:39.809Z ERROR: Error al inicializar el cliente: ProtocolError: Protocol error (Target.setAutoAttach): Target closed.
 2025-04-14T14:40:39.815Z ERROR: Número máximo de intentos de reconexión alcanzado. Reinicie manualmente el servicio.
+2025-04-14T16:17:52.182Z ERROR: Error al inicializar el cliente: ProtocolError: Protocol error (Runtime.callFunctionOn): Target closed.
+2025-04-14T19:58:41.055Z ERROR: Error al inicializar el cliente: Error: Navigation failed because browser has disconnected!
+2025-05-22T08:46:06.701Z ERROR: Rechazo de promesa no manejado: Could not load body for this request. This might happen if the request is a preflight request.
+2025-06-05T16:21:02.491Z ERROR: Error al enviar mensaje: El número +573219372722 no está registrado en WhatsApp.
+2025-06-05T16:21:02.493Z ERROR: 500 - El número +573219372722 no está registrado en WhatsApp. - /api/send - POST - ::ffff:47.88.79.231

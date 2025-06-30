@@ -90,7 +90,7 @@ class WhatsAppClient {
   // Método para enviar mensaje con PDF
   async sendMessage(phone, message, pdfPath) {
     if (!this.isReady) {
-      throw new Error('El cliente de WhatsApp no está listo. Por favor, espere a que se complete la autenticación.');
+      throw new Error('El cliente de WhatsApp no está listo . pista :Soy API en 45.65...regenerar QR es con qr_scanner.js pm2 st.. what314 . Por favor, espere a que se complete la autenticación.');
     }
 
     try {
