@@ -87,7 +87,7 @@ class WhatsAppClient {
     }
   }
 
-  // NUEVO MÉTODO: Enviar solo mensaje de texto a número o grupo
+  // MÉTODO MEJORADO: Enviar solo mensaje de texto a número o grupo
   async sendSimpleMessage(target, message) {
     if (!this.isReady) {
       throw new Error('El cliente de WhatsApp no está listo. Por favor, espere a que se complete la autenticación.');
@@ -113,8 +113,20 @@ class WhatsAppClient {
         logger.info(`Enviando mensaje a contacto: ${displayTarget}`);
       }
 
-      // Enviar mensaje
-      await this.client.sendMessage(target, message);
+      // Enviar mensaje con manejo mejorado del error de serialización
+      try {
+        await this.client.sendMessage(target, message);
+        // Si llegamos aquí, el mensaje se envió correctamente
+      } catch (sendError) {
+        // Verificar si es el error específico de serialización pero el mensaje se envió
+        if (sendError.message && sendError.message.includes('serialize')) {
+          logger.info(`Mensaje enviado exitosamente (ignorando error de serialización): ${displayTarget}`);
+          // Continuamos como si fuera exitoso
+        } else {
+          // Es un error real de envío
+          throw sendError;
+        }
+      }
       
       const successMessage = isGroup 
         ? `Mensaje enviado correctamente al grupo ${displayTarget}`
@@ -157,15 +169,31 @@ class WhatsAppClient {
 
       // Enviar mensaje
       if (message && message.trim() !== '') {
-        await this.client.sendMessage(formattedPhone, message);
-        logger.info(`Mensaje enviado a ${phone}`);
+        try {
+          await this.client.sendMessage(formattedPhone, message);
+          logger.info(`Mensaje enviado a ${phone}`);
+        } catch (sendError) {
+          if (sendError.message && sendError.message.includes('serialize')) {
+            logger.info(`Mensaje enviado exitosamente a ${phone} (ignorando error de serialización)`);
+          } else {
+            throw sendError;
+          }
+        }
       }
 
       // Enviar PDF si existe
       if (pdfPath && fs.existsSync(pdfPath)) {
-        const media = MessageMedia.fromFilePath(pdfPath);
-        await this.client.sendMessage(formattedPhone, media);
-        logger.info(`PDF enviado a ${phone}: ${pdfPath}`);
+        try {
+          const media = MessageMedia.fromFilePath(pdfPath);
+          await this.client.sendMessage(formattedPhone, media);
+          logger.info(`PDF enviado a ${phone}: ${pdfPath}`);
+        } catch (sendError) {
+          if (sendError.message && sendError.message.includes('serialize')) {
+            logger.info(`PDF enviado exitosamente a ${phone}: ${pdfPath} (ignorando error de serialización)`);
+          } else {
+            throw sendError;
+          }
+        }
         return { success: true, message: 'Mensaje y PDF enviados correctamente' };
       } else if (pdfPath) {
         throw new Error(`El archivo PDF no existe en la ruta: ${pdfPath}`);

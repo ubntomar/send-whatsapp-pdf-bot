@@ -21,3 +21,15 @@
 2025-05-22T08:46:06.701Z ERROR: Rechazo de promesa no manejado: Could not load body for this request. This might happen if the request is a preflight request.
 2025-06-05T16:21:02.491Z ERROR: Error al enviar mensaje: El número +573219372722 no está registrado en WhatsApp.
 2025-06-05T16:21:02.493Z ERROR: 500 - El número +573219372722 no está registrado en WhatsApp. - /api/send - POST - ::ffff:47.88.79.231
+2025-06-30T14:47:52.447Z ERROR: Error al enviar mensaje: Evaluation failed: TypeError: Cannot read properties of undefined (reading 'serialize')
+    at window.WWebJS.getMessageModel (pptr://__puppeteer_evaluation_script__:412:29)
+    at pptr://__puppeteer_evaluation_script__:11:34
+2025-06-30T14:47:52.449Z ERROR: 500 - Evaluation failed: TypeError: Cannot read properties of undefined (reading 'serialize')
+    at window.WWebJS.getMessageModel (pptr://__puppeteer_evaluation_script__:412:29)
+    at pptr://__puppeteer_evaluation_script__:11:34 - /api/send-message - POST - ::ffff:127.0.0.1
+2025-06-30T14:48:38.943Z ERROR: Error al enviar mensaje: Evaluation failed: TypeError: Cannot read properties of undefined (reading 'serialize')
+    at window.WWebJS.getMessageModel (pptr://__puppeteer_evaluation_script__:412:29)
+    at pptr://__puppeteer_evaluation_script__:11:34
+2025-06-30T14:48:38.946Z ERROR: 500 - Evaluation failed: TypeError: Cannot read properties of undefined (reading 'serialize')
+    at window.WWebJS.getMessageModel (pptr://__puppeteer_evaluation_script__:412:29)
+    at pptr://__puppeteer_evaluation_script__:11:34 - /api/send-message - POST - ::ffff:127.0.0.1
