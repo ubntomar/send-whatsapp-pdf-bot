@@ -87,10 +87,58 @@ class WhatsAppClient {
     }
   }
 
-  // Método para enviar mensaje con PDF
+  // NUEVO MÉTODO: Enviar solo mensaje de texto a número o grupo
+  async sendSimpleMessage(target, message) {
+    if (!this.isReady) {
+      throw new Error('El cliente de WhatsApp no está listo. Por favor, espere a que se complete la autenticación.');
+    }
+
+    try {
+      // Verificar si es un grupo o contacto individual
+      let isGroup = target.includes('@g.us');
+      let displayTarget = target;
+      
+      if (isGroup) {
+        // Es un grupo - no necesitamos verificar si está registrado
+        displayTarget = target.replace('@g.us', '');
+        logger.info(`Enviando mensaje a grupo: ${displayTarget}`);
+      } else {
+        // Es un contacto individual - verificar si está registrado
+        const contactExists = await this.client.isRegisteredUser(target);
+        if (!contactExists) {
+          const phoneNumber = target.replace('@c.us', '');
+          throw new Error(`El número ${phoneNumber} no está registrado en WhatsApp.`);
+        }
+        displayTarget = target.replace('@c.us', '');
+        logger.info(`Enviando mensaje a contacto: ${displayTarget}`);
+      }
+
+      // Enviar mensaje
+      await this.client.sendMessage(target, message);
+      
+      const successMessage = isGroup 
+        ? `Mensaje enviado correctamente al grupo ${displayTarget}`
+        : `Mensaje enviado correctamente a ${displayTarget}`;
+        
+      logger.info(successMessage);
+      
+      return { 
+        success: true, 
+        message: successMessage,
+        target: displayTarget,
+        type: isGroup ? 'group' : 'contact'
+      };
+      
+    } catch (error) {
+      logger.error(`Error al enviar mensaje: ${error.message}`);
+      throw error;
+    }
+  }
+
+  // Método existente para enviar mensaje con PDF
   async sendMessage(phone, message, pdfPath) {
     if (!this.isReady) {
-      throw new Error('El cliente de WhatsApp no está listo . pista :Soy API en 45.65...regenerar QR es con qr_scanner.js pm2 st.. what314 . Por favor, espere a que se complete la autenticación.');
+      throw new Error('El cliente de WhatsApp no está listo. Por favor, espere a que se complete la autenticación.');
     }
 
     try {

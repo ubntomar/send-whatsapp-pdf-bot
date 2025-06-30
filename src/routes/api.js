@@ -33,7 +33,68 @@ const upload = multer({
   }
 });
 
-// Enviar mensaje con PDF opcional
+// NUEVO ENDPOINT: Enviar mensaje simple a número o grupo específico
+router.post('/send-message', async (req, res, next) => {
+  try {
+    const { target, message } = req.body;
+    
+    // Validar campos obligatorios
+    if (!target) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'El campo "target" (número de teléfono o grupo) es obligatorio' 
+      });
+    }
+    
+    if (!message) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'El campo "message" es obligatorio' 
+      });
+    }
+
+    // Validar que el mensaje no esté vacío
+    if (message.trim() === '') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'El mensaje no puede estar vacío' 
+      });
+    }
+    
+    // Formatear el target para WhatsApp
+    let formattedTarget = target.toString().trim();
+    
+    // Si es un grupo (contiene guión), usar formato de grupo
+    if (formattedTarget.includes('-')) {
+      // Es un grupo: formato 573213011018-1440435780@g.us
+      if (!formattedTarget.endsWith('@g.us')) {
+        formattedTarget = `${formattedTarget}@g.us`;
+      }
+    } else {
+      // Es un número individual: formato +573215450397@c.us
+      formattedTarget = formattedTarget.replace(/\D/g, ''); // Quitar caracteres no numéricos
+      
+      // Agregar código de país si no lo tiene
+      if (!formattedTarget.startsWith('57') && formattedTarget.length === 10) {
+        formattedTarget = `57${formattedTarget}`;
+      }
+      
+      // Agregar sufijo de WhatsApp
+      if (!formattedTarget.endsWith('@c.us')) {
+        formattedTarget = `${formattedTarget}@c.us`;
+      }
+    }
+    
+    // Enviar mensaje usando el cliente existente
+    const result = await whatsappClient.sendSimpleMessage(formattedTarget, message.trim());
+    
+    return res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Enviar mensaje con PDF opcional (endpoint existente)
 router.post('/send', upload.single('pdf'), async (req, res, next) => {
   try {
     const { phone, message } = req.body;
@@ -61,7 +122,7 @@ router.post('/send', upload.single('pdf'), async (req, res, next) => {
   }
 });
 
-// Ruta alternativa para usar la ruta del PDF en lugar de subir el archivo
+// Ruta alternativa para usar la ruta del PDF en lugar de subir el archivo (endpoint existente)
 router.post('/send-with-path', async (req, res, next) => {
   try {
     const { phone, message, pdfPath } = req.body;
