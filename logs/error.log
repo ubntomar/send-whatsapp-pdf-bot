@@ -33,3 +33,14 @@
 2025-06-30T14:48:38.946Z ERROR: 500 - Evaluation failed: TypeError: Cannot read properties of undefined (reading 'serialize')
     at window.WWebJS.getMessageModel (pptr://__puppeteer_evaluation_script__:412:29)
     at pptr://__puppeteer_evaluation_script__:11:34 - /api/send-message - POST - ::ffff:127.0.0.1
+2025-07-01T16:21:05.597Z ERROR: Error al enviar mensaje: El número +573219372722 no está registrado en WhatsApp.
+2025-07-01T16:21:05.600Z ERROR: 500 - El número +573219372722 no está registrado en WhatsApp. - /api/send - POST - ::ffff:47.88.79.231
+2025-07-02T16:21:02.684Z ERROR: Error al enviar mensaje: El número +573219372722 no está registrado en WhatsApp.
+2025-07-02T16:21:02.690Z ERROR: 500 - El número +573219372722 no está registrado en WhatsApp. - /api/send - POST - ::ffff:47.88.79.231
+2025-07-03T16:21:03.405Z ERROR: Error al enviar mensaje: El número +573219372722 no está registrado en WhatsApp.
+2025-07-03T16:21:03.408Z ERROR: 500 - El número +573219372722 no está registrado en WhatsApp. - /api/send - POST - ::ffff:47.88.79.231
+2025-07-04T16:21:03.006Z ERROR: Error al enviar mensaje: El número +573219372722 no está registrado en WhatsApp.
+2025-07-04T16:21:03.009Z ERROR: 500 - El número +573219372722 no está registrado en WhatsApp. - /api/send - POST - ::ffff:47.88.79.231
+2025-07-11T00:35:04.490Z ERROR: Error al inicializar el cliente: Error: Navigation failed because browser has disconnected!
+2025-07-22T22:41:36.410Z ERROR: Error al inicializar el cliente: Error: Navigation failed because browser has disconnected!
+2025-07-22T22:51:13.341Z ERROR: Error al inicializar el cliente: ProtocolError: Protocol error (Runtime.callFunctionOn): Target closed.
