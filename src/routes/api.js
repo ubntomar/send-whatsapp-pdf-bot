@@ -23,137 +23,54 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ 
+const upload = multer({
   storage,
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype === 'application/pdf') {
-      cb(null, true);
-    } else {
-      cb(new Error('Solo se permiten archivos PDF'), false);
-    }
-  },
-  limits: {
-    fileSize: 10 * 1024 * 1024 // Límite de 10MB
-  }
+  limits: { fileSize: 10 * 1024 * 1024 }
 });
 
-// NUEVO ENDPOINT: Enviar mensaje simple a número o grupo específico
-router.post('/send-message', async (req, res, next) => {
-  try {
-    const { target, message } = req.body;
-    
-    // Validar campos obligatorios
-    if (!target) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'El campo "target" (número de teléfono o grupo) es obligatorio' 
-      });
-    }
-    
-    if (!message) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'El campo "message" es obligatorio' 
-      });
-    }
+// Formatear target para WhatsApp (número o grupo)
+const formatTarget = (target) => {
+  const cleaned = target.toString().trim();
 
-    // Validar que el mensaje no esté vacío
-    if (message.trim() === '') {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'El mensaje no puede estar vacío' 
-      });
-    }
-    
-    // Formatear el target para WhatsApp
-    let formattedTarget = target.toString().trim();
-    
-    // Si es un grupo (contiene guión), usar formato de grupo
-    if (formattedTarget.includes('-')) {
-      // Es un grupo: formato 573213011018-1440435780@g.us
-      if (!formattedTarget.endsWith('@g.us')) {
-        formattedTarget = `${formattedTarget}@g.us`;
-      }
-    } else {
-      // Es un número individual: formato +573215450397@c.us
-      formattedTarget = formattedTarget.replace(/\D/g, ''); // Quitar caracteres no numéricos
-      
-      // Agregar código de país si no lo tiene
-      if (!formattedTarget.startsWith('57') && formattedTarget.length === 10) {
-        formattedTarget = `57${formattedTarget}`;
-      }
-      
-      // Agregar sufijo de WhatsApp
-      if (!formattedTarget.endsWith('@c.us')) {
-        formattedTarget = `${formattedTarget}@c.us`;
-      }
-    }
-    
-    // Enviar mensaje usando el cliente existente
-    const result = await whatsappClient.sendSimpleMessage(formattedTarget, message.trim());
-    
-    return res.status(200).json(result);
-  } catch (error) {
-    next(error);
+  if (cleaned.includes('-')) {
+    return cleaned.endsWith('@g.us') ? cleaned : `${cleaned}@g.us`;
   }
-});
 
-// Enviar mensaje con PDF opcional (endpoint existente)
-router.post('/send', upload.single('pdf'), async (req, res, next) => {
-  try {
-    const { phone, message } = req.body;
-    
-    if (!phone) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'El número de teléfono es obligatorio' 
-      });
-    }
-    
-    if (!message && !req.file) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Debe proporcionar un mensaje o un archivo PDF' 
-      });
-    }
-    
-    const pdfPath = req.file ? req.file.path : null;
-    const result = await whatsappClient.sendMessage(phone, message, pdfPath);
-    
-    return res.status(200).json(result);
-  } catch (error) {
-    next(error);
-  }
-});
+  const numbersOnly = cleaned.replace(/\D/g, '');
+  const withCountryCode = numbersOnly.length === 10 && !numbersOnly.startsWith('57')
+    ? `57${numbersOnly}`
+    : numbersOnly;
 
-// Ruta alternativa para usar la ruta del PDF en lugar de subir el archivo (endpoint existente)
-router.post('/send-with-path', async (req, res, next) => {
+  return withCountryCode.endsWith('@c.us') ? withCountryCode : `${withCountryCode}@c.us`;
+};
+
+// Endpoint unificado para enviar mensajes
+router.post('/send', upload.single('file'), async (req, res, next) => {
   try {
-    const { phone, message, pdfPath } = req.body;
-    
-    if (!phone) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'El número de teléfono es obligatorio' 
+    const { target, phone, message, filePath } = req.body;
+
+    // Determinar el target (prioridad: target > phone)
+    const finalTarget = target || phone;
+    if (!finalTarget) {
+      return res.status(400).json({
+        success: false,
+        message: 'Debe especificar un target (número o grupo)'
       });
     }
-    
-    if (!message && !pdfPath) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Debe proporcionar un mensaje o una ruta de archivo PDF' 
+
+    // Determinar archivo (prioridad: archivo subido > ruta especificada)
+    const finalFilePath = req.file?.path || filePath;
+
+    if (!message?.trim() && !finalFilePath) {
+      return res.status(400).json({
+        success: false,
+        message: 'Debe proporcionar un mensaje o archivo'
       });
     }
-    
-    if (pdfPath && !fs.existsSync(pdfPath)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: `El archivo PDF no existe en la ruta: ${pdfPath}` 
-      });
-    }
-    
-    const result = await whatsappClient.sendMessage(phone, message, pdfPath);
-    
+
+    const formattedTarget = formatTarget(finalTarget);
+    const result = await whatsappClient.sendMessage(formattedTarget, message || '', finalFilePath);
+
     return res.status(200).json(result);
   } catch (error) {
     next(error);

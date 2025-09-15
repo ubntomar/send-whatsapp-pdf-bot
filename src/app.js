@@ -52,23 +52,9 @@ app.listen(PORT, () => {
   logger.info(`Servidor iniciado en el puerto ${PORT}`);
 });
 
-// Programar una tarea para verificar la conexión periódicamente
-cron.schedule('*/30 * * * *', () => {
-  const status = whatsappClient.getStatus();
-  logger.info(`Estado del cliente: ${JSON.stringify(status)}`);
-  
-  if (!status.isReady && status.reconnectAttempts >= 5) {
-    logger.info('Reiniciando cliente debido a desconexión prolongada...');
-    whatsappClient.restart();
-  }
-});
-
-// Añadir después de las otras tareas cron
+// Limpieza diaria de archivos temporales
 import cleanupUploads from './utils/cleanup.js';
-cron.schedule('0 2 * * *', () => {
-  logger.info('Iniciando limpieza de archivos temporales...');
-  cleanupUploads();
-});
+cron.schedule('0 2 * * *', cleanupUploads);
 
 // Manejar señales de proceso
 process.on('SIGINT', async () => {
@@ -78,11 +64,10 @@ process.on('SIGINT', async () => {
 
 process.on('uncaughtException', (error) => {
   logger.error(`Excepción no capturada: ${error.message}`);
-  logger.error(error.stack);
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Rechazo de promesa no manejado:', reason);
+process.on('unhandledRejection', (reason) => {
+  logger.error('Promesa rechazada:', reason);
 });
 
 export default app;
