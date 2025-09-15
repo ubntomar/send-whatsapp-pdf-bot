@@ -1,12 +1,17 @@
-require('dotenv').config();
-const express = require('express');
-const path = require('path');
-const cron = require('node-cron');
-const fs = require('fs-extra');
-const logger = require('./utils/error-handler');
-const { errorMiddleware, requestLoggerMiddleware } = require('./utils/error-handler');
-const apiRoutes = require('./routes/api');
-const whatsappClient = require('./whatsapp');
+import dotenv from 'dotenv';
+import express from 'express';
+import path from 'path';
+import cron from 'node-cron';
+import fs from 'fs-extra';
+import { fileURLToPath } from 'url';
+import logger, { errorMiddleware, requestLoggerMiddleware } from './utils/error-handler.js';
+import apiRoutes from './routes/api.js';
+import whatsappClient from './whatsapp.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config();
 
 // Crear directorios necesarios
 fs.ensureDirSync(path.join(process.cwd(), 'uploads'));
@@ -59,7 +64,7 @@ cron.schedule('*/30 * * * *', () => {
 });
 
 // Añadir después de las otras tareas cron
-const cleanupUploads = require('./utils/cleanup');
+import cleanupUploads from './utils/cleanup.js';
 cron.schedule('0 2 * * *', () => {
   logger.info('Iniciando limpieza de archivos temporales...');
   cleanupUploads();
@@ -80,4 +85,4 @@ process.on('unhandledRejection', (reason, promise) => {
   logger.error('Rechazo de promesa no manejado:', reason);
 });
 
-module.exports = app;
+export default app;

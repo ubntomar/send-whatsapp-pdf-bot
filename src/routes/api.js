@@ -1,9 +1,13 @@
-const express = require('express');
+import express from 'express';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs-extra';
+import { fileURLToPath } from 'url';
+import whatsappClient from '../whatsapp.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const router = express.Router();
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs-extra');
-const whatsappClient = require('../whatsapp');
 
 // Configurar multer para guardar los archivos subidos
 const uploadDir = path.join(process.cwd(), 'uploads');
@@ -175,4 +179,4 @@ router.post('/restart', async (req, res, next) => {
   }
 });
 
-module.exports = router;
+export default router;

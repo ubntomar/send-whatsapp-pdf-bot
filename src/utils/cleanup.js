@@ -1,6 +1,10 @@
-const fs = require('fs-extra');
-const path = require('path');
-const logger = require('./error-handler');
+import fs from 'fs-extra';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import logger from './error-handler.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Eliminar archivos PDF más antiguos que cierto tiempo (1 día por defecto)
 const cleanupUploads = (dir = 'uploads', maxAgeHours = 24) => {
@@ -30,4 +34,4 @@ const cleanupUploads = (dir = 'uploads', maxAgeHours = 24) => {
   });
 };
 
-module.exports = cleanupUploads;
+export default cleanupUploads;

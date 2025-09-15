@@ -1,6 +1,10 @@
-const winston = require('winston');
-const path = require('path');
-const fs = require('fs-extra');
+import winston from 'winston';
+import path from 'path';
+import fs from 'fs-extra';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Asegurar que existe el directorio de logs
 const logDir = path.join(process.cwd(), 'logs');
@@ -47,6 +51,5 @@ const requestLoggerMiddleware = (req, res, next) => {
   next();
 };
 
-module.exports = logger;
-module.exports.errorMiddleware = errorMiddleware;
-module.exports.requestLoggerMiddleware = requestLoggerMiddleware;
+export default logger;
+export { errorMiddleware, requestLoggerMiddleware };
