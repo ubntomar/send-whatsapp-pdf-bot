@@ -10,3 +10,13 @@ yarn-error.log
 
 sessions/
 
+# Logs
+logs/
+*.log
+
+# Archivos de prueba
+test-document.pdf
+
+# Otros archivos temporales
+uploads/
+
