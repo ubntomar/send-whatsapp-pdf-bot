@@ -86,6 +86,34 @@ router.get('/status', (req, res) => {
   });
 });
 
+// Endpoint simple para enviar solo mensajes de texto
+router.post('/send-message', async (req, res, next) => {
+  try {
+    const { target, message } = req.body;
+
+    if (!target) {
+      return res.status(400).json({
+        success: false,
+        message: 'Debe especificar un target (número o grupo)'
+      });
+    }
+
+    if (!message?.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Debe proporcionar un mensaje'
+      });
+    }
+
+    const formattedTarget = formatTarget(target);
+    const result = await whatsappClient.sendMessage(formattedTarget, message);
+
+    return res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Reiniciar el cliente
 router.post('/restart', async (req, res, next) => {
   try {
