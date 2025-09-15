@@ -23,3 +23,5 @@ test-document.pdf
 # Otros archivos temporales
 uploads/
 
+logs/
+*.log
