@@ -9,6 +9,9 @@ yarn-error.log
 .wwebjs_cache
 
 sessions/
+# Caché de WhatsApp Web JS
+.wwebjs*
+.wwebjs_auth/
 
 # Logs
 logs/
