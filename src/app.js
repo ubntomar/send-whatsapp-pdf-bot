@@ -36,6 +36,7 @@ app.get('/', (req, res) => {
     message: 'API de WhatsApp funcionando correctamente',
     endpoints: {
       status: 'GET /api/status',
+      groups: 'GET /api/groups',
       sendSimpleMessage: 'POST /api/send-message',
       sendMessage: 'POST /api/send',
       sendWithPath: 'POST /api/send-with-path',
@@ -48,7 +49,7 @@ app.get('/', (req, res) => {
 app.use(errorMiddleware);
 
 // Iniciar el servidor
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   logger.info(`Servidor iniciado en el puerto ${PORT}`);
 });
 
@@ -57,10 +58,30 @@ import cleanupUploads from './utils/cleanup.js';
 cron.schedule('0 2 * * *', cleanupUploads);
 
 // Manejar señales de proceso
-process.on('SIGINT', async () => {
-  logger.info('Cerrando aplicación...');
+const gracefulShutdown = async (signal) => {
+  logger.info(`Señal ${signal} recibida. Cerrando aplicación...`);
+
+  // Cerrar servidor HTTP
+  server.close(() => {
+    logger.info('Servidor HTTP cerrado');
+  });
+
+  // Destruir cliente de WhatsApp si existe
+  try {
+    const client = whatsappClient.getClient();
+    if (client) {
+      await client.destroy();
+      logger.info('Cliente de WhatsApp cerrado');
+    }
+  } catch (error) {
+    logger.error(`Error al cerrar WhatsApp: ${error.message}`);
+  }
+
   process.exit(0);
-});
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 process.on('uncaughtException', (error) => {
   logger.error(`Excepción no capturada: ${error.message}`);

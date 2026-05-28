@@ -114,6 +114,32 @@ router.post('/send-message', async (req, res, next) => {
   }
 });
 
+// Listar todos los grupos
+router.get('/groups', async (req, res, next) => {
+  try {
+    const client = whatsappClient.getClient();
+    if (!client) {
+      return res.status(503).json({
+        success: false,
+        message: 'Cliente no está listo'
+      });
+    }
+
+    const chats = await client.getChats();
+    const groups = chats.filter(chat => chat.isGroup).map(group => ({
+      id: group.id._serialized,
+      name: group.name
+    }));
+
+    return res.status(200).json({
+      success: true,
+      groups
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Reiniciar el cliente
 router.post('/restart', async (req, res, next) => {
   try {
