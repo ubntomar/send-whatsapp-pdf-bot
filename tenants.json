@@ -1,0 +1,10 @@
+{
+  "defaultTenant": 4,
+  "fallbackToDefault": true,
+  "tenants": {
+    "1": { "id": 1, "name": "Smartnet AI",         "phone": null,           "enabled": false },
+    "2": { "id": 2, "name": "AG Ingenieria",       "phone": null,           "enabled": false },
+    "3": { "id": 3, "name": "Turbo Red",           "phone": null,           "enabled": false },
+    "4": { "id": 4, "name": "Omar Hernandez Diaz", "phone": "573147654655", "enabled": true  }
+  }
+}

@@ -1,6 +1,6 @@
-// src/whatsapp.js - Versión simplificada sin reconexión automática
+// src/whatsapp.js - Cliente WhatsApp parametrizable por tenant (multi-tenant)
 import pkg from 'whatsapp-web.js';
-import qrcode from 'qrcode-terminal';
+import qrcodeTerminal from 'qrcode-terminal';
 import fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -13,43 +13,21 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
-// Comandos para reiniciar el servicio (systemd)
-const SERVICE_NAME = 'whatsapp-bot';
-const RESTART_CMD = `sudo systemctl restart ${SERVICE_NAME}`;
-const LOGS_CMD = `sudo journalctl -u ${SERVICE_NAME} -f`;
-
 // Función para enviar notificaciones a ntfy
-async function sendNtfyNotification(message, priority = 'default', tags = [], includeCommands = false) {
+async function sendNtfyNotification(message, title = 'WhatsApp Bot', priority = 'default', tags = []) {
   const ntfyTopic = process.env.NTFY_TOPIC || 'whatsapp';
   const ntfyServer = process.env.NTFY_SERVER || 'ntfy.sh';
-
-  // Construir el mensaje con comandos si es necesario
-  let fullMessage = message;
-  if (includeCommands) {
-    fullMessage += `\n\n──────────────────\n`;
-    fullMessage += `Comandos útiles:\n`;
-    fullMessage += `  Reiniciar:  ${RESTART_CMD}\n`;
-    fullMessage += `  Ver logs:   ${LOGS_CMD}`;
-  }
 
   const priorityMap = { min: 1, low: 2, default: 3, high: 4, urgent: 5, max: 5 };
   const priorityNum = typeof priority === 'number' ? priority : (priorityMap[priority] || 3);
 
   const data = JSON.stringify({
     topic: ntfyTopic,
-    message: fullMessage,
-    title: 'WhatsApp Bot VPS',
+    message,
+    title,
     priority: priorityNum,
-    tags: tags,
-    click: `https://ntfy.sh/${ntfyTopic}`,
-    actions: includeCommands ? [
-      {
-        action: 'view',
-        label: 'Ver en navegador',
-        url: `https://ntfy.sh/${ntfyTopic}`,
-        clear: false
-      }
-    ] : []
+    tags,
+    click: `https://ntfy.sh/${ntfyTopic}`
   });
 
   const options = {
@@ -69,65 +47,54 @@ async function sendNtfyNotification(message, priority = 'default', tags = [], in
       res.on('data', (chunk) => body += chunk);
       res.on('end', () => {
         if (res.statusCode >= 200 && res.statusCode < 300) {
-          console.log(`[NTFY] Notificación enviada: ${message}`);
           resolve({ success: true, body });
         } else {
-          console.error(`[NTFY] Error: ${res.statusCode} - ${body}`);
           reject(new Error(`ntfy returned ${res.statusCode}`));
         }
       });
     });
-
-    req.on('error', (error) => {
-      console.error(`[NTFY] Error de conexión: ${error.message}`);
-      reject(error);
-    });
-
+    req.on('error', (error) => reject(error));
     req.write(data);
     req.end();
   });
 }
 
 class WhatsAppClient {
-  constructor() {
+  // tenantConfig: { id, name, phone }
+  constructor(tenantConfig) {
+    this.tenantId = tenantConfig.id;
+    this.name = tenantConfig.name || `tenant-${tenantConfig.id}`;
+    this.phone = tenantConfig.phone || null;
+    this.label = `[${this.name}]`;
+
     this.client = null;
     this.isReady = false;
-    this.wasConnectedOnce = false; // Una vez conectado, no volver a mostrar QR
-    this.sentNotifications = new Set(); // Controlar notificaciones enviadas por arranque
+    this.wasConnectedOnce = false;
+    this.lastQr = null;            // último QR (string) pendiente de escanear
+    this.sentNotifications = new Set();
     this.initialize();
   }
 
-  // Método para enviar notificación (máximo una de cada tipo por arranque)
-  async notify(type, message, priority = 'high', tags = [], includeCommands = false) {
-    if (this.sentNotifications.has(type)) {
-      console.log(`[NTFY] Notificación '${type}' ya enviada en este arranque, omitiendo.`);
-      return;
-    }
-    this.sentNotifications.add(type);
+  // Notificación (máximo una de cada tipo por arranque, prefijada por empresa)
+  async notify(type, message, priority = 'high', tags = []) {
+    const key = `${this.tenantId}:${type}`;
+    if (this.sentNotifications.has(key)) return;
+    this.sentNotifications.add(key);
     try {
-      await sendNtfyNotification(message, priority, tags, includeCommands);
+      await sendNtfyNotification(message, `WhatsApp Bot ${this.label}`, priority, tags);
     } catch (error) {
-      console.error('Error al enviar notificación:', error.message);
+      console.error(`${this.label} Error al enviar notificación:`, error.message);
     }
   }
 
   initialize() {
-    // Notificar que el servicio está iniciando
-    this.notify(
-      'startup',
-      '── Servicio Iniciando ──\n\nEl bot de WhatsApp se está arrancando.\nEsperando conexión...',
-      'default',
-      ['rocket']
-    );
+    const basePath = process.env.SESSION_PATH || './sessions';
+    fs.ensureDirSync(basePath);
 
-    // Configurar directorio de sesión
-    const sessionPath = process.env.SESSION_PATH || './.wwebjs_auth';
-    fs.ensureDirSync(sessionPath);
-
-    // Crear cliente
     this.client = new Client({
       authStrategy: new LocalAuth({
-        dataPath: sessionPath
+        clientId: `tenant-${this.tenantId}`,
+        dataPath: basePath
       }),
       puppeteer: {
         headless: true,
@@ -143,225 +110,152 @@ class WhatsAppClient {
       }
     });
 
-    // Manejo de QR - Solo mostrar si nunca se ha conectado
+    // QR: guardar en memoria (para endpoint) y mostrar en consola
     this.client.on('qr', qr => {
-      if (this.wasConnectedOnce) {
-        // Ya se conectó antes, NO mostrar QR, solo notificar
-        console.log('\n[!] Se requiere nuevo QR pero el servicio ya estuvo conectado.');
-        console.log('[!] Reinicia el servicio manualmente para escanear un nuevo QR.\n');
-        this.notify(
-          'qr_lost',
-          '── Sesión Perdida ──\n\nSe requiere un nuevo código QR pero el servicio ya estuvo conectado.\n\nAcción: Reinicia el servicio para escanear un nuevo QR.',
-          'urgent',
-          ['warning', 'x'],
-          true
-        );
-        return;
-      }
-
-      // Primera vez: limpiar pantalla y mostrar QR
-      console.clear();
-      console.log('\n========================================');
-      console.log('   ESCANEA ESTE QR CON WHATSAPP');
-      console.log('========================================\n');
-      qrcode.generate(qr, { small: true });
-      console.log('\n========================================\n');
+      this.lastQr = qr;
+      this.isReady = false;
+      console.log(`\n======== ${this.label} ESCANEA ESTE QR ========\n`);
+      qrcodeTerminal.generate(qr, { small: true });
+      console.log(`\n=============================================\n`);
+      this.notify(
+        'qr',
+        `${this.label} Se requiere escanear un QR.\n\nAbre: /api/${this.tenantId}/qr`,
+        'high',
+        ['warning']
+      );
     });
 
-    // Evento de autenticación exitosa
     this.client.on('authenticated', () => {
-      console.log('[OK] Sesión autenticada correctamente');
+      console.log(`${this.label} [OK] Sesión autenticada`);
     });
 
-    // Estados del cliente
     this.client.on('change_state', state => {
-      console.log(`[STATE] ${state}`);
-
+      console.log(`${this.label} [STATE] ${state}`);
       if (state === 'CONFLICT' || state === 'UNPAIRED') {
         this.isReady = false;
-        console.log(`\n[!] Estado problemático detectado: ${state}`);
-        console.log('[!] Reinicia el servicio manualmente.\n');
-        this.notify(
-          'state_problem',
-          `── Estado Problemático ──\n\nEstado detectado: ${state}\n\nAcción: Reinicia el servicio para restablecer la conexión.`,
-          'urgent',
-          ['warning'],
-          true
-        );
+        this.notify('state_problem', `${this.label} Estado problemático: ${state}. Reinicia este tenant.`, 'urgent', ['warning']);
       }
     });
 
-    // Desconexión
     this.client.on('disconnected', reason => {
-      console.log(`\n[DISCONNECTED] ${reason}`);
+      console.log(`${this.label} [DISCONNECTED] ${reason}`);
       this.isReady = false;
-
-      // Notificar y NO reconectar
-      console.log('[!] Cliente desconectado. Reinicia el servicio manualmente.\n');
-      this.notify(
-        'disconnected',
-        `── Desconectado ──\n\nMotivo: ${reason}\n\nEl bot ha perdido la conexión con WhatsApp.\n\nAcción: Reinicia el servicio manualmente.`,
-        'urgent',
-        ['broken_heart', 'warning'],
-        true
-      );
+      this.notify('disconnected', `${this.label} Desconectado: ${reason}. Reinicia este tenant (/api/${this.tenantId}/restart).`, 'urgent', ['broken_heart', 'warning']);
     });
 
-    // Fallo de autenticación
     this.client.on('auth_failure', msg => {
-      console.log(`\n[AUTH_FAILURE] ${msg}`);
+      console.log(`${this.label} [AUTH_FAILURE] ${msg}`);
       this.isReady = false;
-
-      // Limpiar sesión corrupta
-      const sessionPath = process.env.SESSION_PATH || './.wwebjs_auth';
+      // Limpiar sesión corrupta SOLO de este tenant
+      const sessionDir = path.join(process.env.SESSION_PATH || './sessions', `session-tenant-${this.tenantId}`);
       try {
-        fs.removeSync(sessionPath);
-        console.log('[!] Sesión corrupta eliminada');
+        fs.removeSync(sessionDir);
+        console.log(`${this.label} [!] Sesión corrupta eliminada: ${sessionDir}`);
       } catch (e) {
-        console.error('Error limpiando sesión:', e.message);
+        console.error(`${this.label} Error limpiando sesión:`, e.message);
       }
-
-      console.log('[!] Reinicia el servicio manualmente para escanear nuevo QR.\n');
-      this.notify(
-        'auth_failure',
-        '── Autenticación Fallida ──\n\nLa sesión estaba corrupta y fue eliminada.\n\nAcción: Reinicia el servicio para escanear un nuevo QR.',
-        'urgent',
-        ['x', 'warning'],
-        true
-      );
+      this.notify('auth_failure', `${this.label} Autenticación fallida; sesión eliminada. Reinicia para escanear nuevo QR.`, 'urgent', ['x', 'warning']);
     });
 
-    // Cliente listo
     this.client.on('ready', () => {
-      console.clear();
-      console.log('\n========================================');
-      console.log('   WHATSAPP CONECTADO CORRECTAMENTE');
-      console.log('========================================\n');
-      console.log('[OK] El bot está listo para enviar mensajes.\n');
-
       this.isReady = true;
       this.wasConnectedOnce = true;
-
-      this.notify(
-        'ready',
-        '── Conectado ──\n\nWhatsApp conectado y listo para enviar mensajes.',
-        'default',
-        ['white_check_mark']
-      );
+      this.lastQr = null;
+      console.log(`${this.label} [OK] WhatsApp conectado y listo`);
+      this.notify('ready', `${this.label} Conectado y listo para enviar mensajes.`, 'default', ['white_check_mark']);
     });
 
     this.client.initialize();
   }
 
-  // Método para enviar mensajes (texto y/o archivos)
+  // Enviar mensajes (texto y/o archivos)
   async sendMessage(target, message = '', filePath = null) {
     if (!this.isReady) {
-      this.notify(
-        'send_not_connected',
-        '── Envío Fallido ──\n\nSe intentó enviar un mensaje pero el cliente no está conectado.\n\nAcción: Reinicia el servicio.',
-        'high',
-        ['warning'],
-        true
-      );
-      throw new Error('El cliente de WhatsApp no está listo.');
+      throw new Error(`${this.label} El cliente de WhatsApp no está listo.`);
     }
-
     if (!this.client.pupPage || this.client.pupPage.isClosed()) {
       this.isReady = false;
-      this.notify(
-        'browser_closed',
-        '── Navegador Cerrado ──\n\nLa sesión del navegador se cerró inesperadamente.\n\nAcción: Reinicia el servicio.',
-        'urgent',
-        ['warning'],
-        true
-      );
-      throw new Error('Sesión del navegador cerrada.');
+      this.notify('browser_closed', `${this.label} El navegador se cerró inesperadamente. Reinicia este tenant.`, 'urgent', ['warning']);
+      throw new Error(`${this.label} Sesión del navegador cerrada.`);
     }
 
     try {
-      // Formatear target (número o grupo)
       let formattedTarget = target;
       if (!target.includes('@')) {
         const raw = target.replace(/\D/g, '');
         const numeroId = await this.client.getNumberId(raw);
-
         if (!numeroId) {
           throw new Error(`Número no registrado en WhatsApp: ${raw}`);
         }
-
         formattedTarget = numeroId._serialized;
       }
 
-      // Enviar mensaje de texto
       if (message.trim()) {
         const msg = await this.client.sendMessage(formattedTarget, message);
-        console.log(`[SENT] Mensaje enviado (ID: ${msg.id.id})`);
+        console.log(`${this.label} [SENT] Mensaje (ID: ${msg.id.id})`);
       }
 
-      // Enviar archivo si existe
       if (filePath) {
         if (!fs.existsSync(filePath)) {
           throw new Error(`Archivo no encontrado: ${filePath}`);
         }
         const media = MessageMedia.fromFilePath(filePath);
         const fileMsg = await this.client.sendMessage(formattedTarget, media);
-        console.log(`[SENT] Archivo enviado (ID: ${fileMsg.id.id}): ${filePath}`);
+        console.log(`${this.label} [SENT] Archivo (ID: ${fileMsg.id.id}): ${filePath}`);
       }
 
-      return { success: true, message: 'Enviado correctamente', target: formattedTarget };
-
+      return { success: true, message: 'Enviado correctamente', target: formattedTarget, tenant: this.tenantId };
     } catch (error) {
-      console.error(`[ERROR] ${error.message}`);
-
+      console.error(`${this.label} [ERROR] ${error.message}`);
       if (error.message.includes('Session closed') || error.message.includes('Target closed')) {
         this.isReady = false;
-        this.notify(
-          'session_closed_send',
-          '── Sesión Cerrada ──\n\nLa sesión se cerró mientras se enviaba un mensaje.\n\nAcción: Reinicia el servicio.',
-          'urgent',
-          ['warning'],
-          true
-        );
+        this.notify('session_closed_send', `${this.label} La sesión se cerró durante un envío. Reinicia este tenant.`, 'urgent', ['warning']);
       }
-
       throw error;
     }
   }
 
-  // Método para obtener el cliente
   getClient() {
     return this.isReady ? this.client : null;
   }
 
-  // Método para verificar el estado
+  getQr() {
+    return this.lastQr;
+  }
+
   getStatus() {
     return {
+      tenantId: this.tenantId,
+      name: this.name,
+      phone: this.phone,
       isReady: this.isReady,
-      wasConnectedOnce: this.wasConnectedOnce
+      wasConnectedOnce: this.wasConnectedOnce,
+      hasQr: !!this.lastQr
     };
   }
 
-  // Método para reiniciar (solo destruir, el usuario debe reiniciar el servicio)
+  // Reinicia este tenant: destruye y vuelve a inicializar (regenera QR si hace falta)
   async restart() {
-    console.log('\n[!] Reiniciando cliente...');
+    console.log(`${this.label} [!] Reiniciando cliente...`);
     try {
       await this.client.destroy();
     } catch (error) {
-      console.error(`Error al destruir el cliente: ${error.message}`);
+      console.error(`${this.label} Error al destruir el cliente: ${error.message}`);
     }
+    this.isReady = false;
+    this.lastQr = null;
+    this.sentNotifications.clear();
+    this.initialize();
+    return { success: true, message: `${this.label} Cliente reiniciado.`, tenant: this.tenantId };
+  }
 
-    console.log('[!] Cliente destruido. Reinicia el servicio manualmente.\n');
-    this.notify(
-      'client_destroyed',
-      '── Cliente Destruido ──\n\nEl cliente de WhatsApp fue destruido correctamente.\n\nAcción: Reinicia el servicio manualmente.',
-      'default',
-      ['arrows_counterclockwise']
-    );
-
-    return { success: true, message: 'Cliente destruido. Reinicia el servicio manualmente.' };
+  async destroy() {
+    try {
+      await this.client.destroy();
+    } catch (error) {
+      console.error(`${this.label} Error al destruir: ${error.message}`);
+    }
   }
 }
 
-// Crear y exportar instancia única
-const whatsappClient = new WhatsAppClient();
-export default whatsappClient;
+export default WhatsAppClient;
